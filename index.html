@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Research Mind-Map Tool Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root {
+  --bg:#020617;--panel:#0f172a;--border:#1e293b;
+  --text:#e5e7eb;--muted:#94a3b8;--accent:#38bdf8;
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:radial-gradient(circle at top,#020617,#000);
+  color:var(--text);overflow-x:hidden;min-height:100vh;
+}
+.container{max-width:1400px;margin:auto;padding:20px}
+
+/* Header */
+.header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:24px;flex-wrap:wrap;gap:12px;
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.icon-globe{
+  width:40px;height:40px;background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+}
+h1{font-size:1.8rem;margin-bottom:4px;background:linear-gradient(90deg,#38bdf8,#818cf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:.9rem}
+.header-right{display:flex;gap:8px}
+.icon-btn{
+  padding:8px 12px;background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;color:var(--muted);cursor:pointer;font-size:.85rem;
+  transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.icon-btn:hover{background:#1e293b;color:var(--accent);transform:translateY(-2px)}
+
+/* Progress Bar */
+.progress-bar{
+  height:4px;background:var(--border);border-radius:4px;overflow:hidden;
+  margin-bottom:20px;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,#38bdf8,#818cf8);
+  width:0%;transition:width .3s;
+}
+
+/* Tabs */
+.tabs{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;margin-bottom:20px;
+}
+.tab{
+  padding:14px 16px;border-radius:14px;border:1px solid var(--border);
+  background:var(--panel);color:var(--muted);cursor:pointer;
+  text-align:center;font-size:.9rem;transition:all .3s;
+  position:relative;overflow:hidden;
+}
+.tab::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(135deg,#38bdf8,#818cf8);opacity:0;
+  transition:opacity .3s;z-index:0;
+}
+.tab>*{position:relative;z-index:1}
+.tab:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tab.active{border-color:var(--accent);color:#020617;font-weight:700}
+.tab.active::before{opacity:1}
+.tab.completed{border-color:var(--success)}
+.tab.completed::after{
+  content:'✓';position:absolute;top:4px;right:6px;
+  color:var(--success);font-size:.7rem;
+}
+
+/* Panels */
+.panel{
+  display:none;background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:24px;animation:fadeIn .3s;
+}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.panel h3{margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.panel h3::before{
+  content:'';width:4px;height:20px;
+  background:linear-gradient(180deg,#38bdf8,#818cf8);
+  border-radius:2px;
+}
+
+/* Inputs */
+textarea,input,select{
+  width:100%;background:#020617;border:1px solid var(--border);
+  border-radius:12px;padding:14px;color:var(--text);margin-top:10px;
+  font-family:inherit;font-size:.95rem;transition:border .2s;
+}
+textarea:focus,input:focus,select:focus{
+  outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(56,189,248,.1);
+}
+textarea{min-height:180px;resize:vertical;font-family:'Courier New',monospace}
+.input-group{margin-top:16px}
+.input-label{
+  display:block;color:var(--muted);font-size:.85rem;
+  margin-bottom:6px;font-weight:500;
+}
+
+/* Buttons */
+.btn-group{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+button,.btn{
+  padding:12px 20px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;font-weight:700;cursor:pointer;
+  font-size:.9rem;transition:all .2s;display:inline-flex;
+  align-items:center;gap:8px;
+}
+button:hover,.btn:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(56,189,248,.3)}
+button:active,.btn:active{transform:translateY(0)}
+button.secondary{background:var(--panel);color:var(--text);border:1px solid var(--border)}
+button.secondary:hover{background:#1e293b;box-shadow:none}
+button.success{background:linear-gradient(135deg,#10b981,#059669)}
+button.danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
+
+/* Hints */
+.hint-box{
+  background:#020617;border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-top:16px;
+}
+.hint-box ul{margin-left:20px;line-height:1.8}
+.hint-box li{color:var(--muted);font-size:.9rem}
+.hint-box li::marker{color:var(--accent)}
+
+/* URL List */
+.url-list{
+  background:#020617;border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-top:16px;max-height:300px;
+  overflow-y:auto;
+}
+.url-item{
+  display:flex;align-items:center;gap:10px;padding:10px;
+  border-bottom:1px solid var(--border);transition:background .2s;
+}
+.url-item:hover{background:var(--panel)}
+.url-item:last-child{border-bottom:none}
+.url-icon{
+  width:32px;height:32px;background:var(--panel);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.url-link{
+  flex:1;color:var(--accent);text-decoration:none;
+  font-size:.85rem;word-break:break-all;
+}
+.url-link:hover{text-decoration:underline}
+
+/* Mind Map */
+.map-controls{
+  display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;
+  align-items:center;
+}
+.map-controls select{
+  width:auto;min-width:150px;margin:0;
+}
+.search-box{
+  flex:1;min-width:200px;margin:0!important;
+}
+
+.map-container{
+  margin-top:16px;padding:20px;
+  background:#020617;border:1px solid var(--border);
+  border-radius:12px;min-height:400px;overflow:auto;
+  position:relative;
+}
+.map-canvas{
+  display:inline-block;min-width:100%;
+}
+
+.node{
+  display:inline-block;padding:10px 16px;border-radius:12px;
+  background:linear-gradient(135deg,#1e293b,#0f172a);
+  border:1px solid var(--border);
+  margin:8px;font-size:.85rem;cursor:pointer;
+  transition:all .2s;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.node:hover{
+  transform:scale(1.05);
+  box-shadow:0 4px 16px rgba(56,189,248,.2);
+  border-color:var(--accent);
+}
+.node.root{
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  color:#020617;font-weight:800;font-size:1.1rem;
+  padding:14px 24px;box-shadow:0 4px 16px rgba(56,189,248,.4);
+}
+.node.level-1{background:linear-gradient(135deg,#334155,#1e293b);border-color:#475569}
+.node.level-2{background:linear-gradient(135deg,#1e293b,#0f172a);border-color:#334155}
+.node.dragging{opacity:.4;cursor:grabbing}
+.node.highlight{
+  background:linear-gradient(135deg,#f59e0b,#d97706)!important;
+  color:#020617!important;animation:pulse 1s infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+.children{
+  margin-left:30px;border-left:2px dashed #334155;
+  padding-left:16px;display:none;margin-top:8px;
+}
+.children.visible{display:block}
+
+.node-badge{
+  position:absolute;top:-6px;right:-6px;
+  background:var(--accent);color:#020617;
+  border-radius:50%;width:20px;height:20px;
+  font-size:.65rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.bloom-tag{
+  display:inline-block;margin-top:6px;padding:4px 8px;
+  background:rgba(56,189,248,.2);border-radius:6px;
+  font-size:.7rem;color:var(--accent);font-weight:600;
+}
+
+/* Stats */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;margin-top:16px;
+}
+.stat-card{
+  background:#020617;border:1px solid var(--border);
+  border-radius:12px;padding:16px;text-align:center;
+}
+.stat-value{
+  font-size:2rem;font-weight:800;
+  background:linear-gradient(135deg,#38bdf8,#818cf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.stat-label{color:var(--muted);font-size:.8rem;margin-top:4px}
+
+/* Export Menu */
+.export-menu{
+  position:relative;display:inline-block;
+}
+.export-dropdown{
+  display:none;position:absolute;top:100%;right:0;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;margin-top:8px;min-width:180px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;
+}
+.export-dropdown.active{display:block;animation:fadeIn .2s}
+.export-option{
+  padding:12px 16px;cursor:pointer;transition:background .2s;
+  border-bottom:1px solid var(--border);font-size:.85rem;
+}
+.export-option:hover{background:#1e293b}
+.export-option:last-child{border-bottom:none}
+
+/* Toast Notification */
+.toast{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:16px 20px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  display:none;align-items:center;gap:12px;
+  max-width:300px;z-index:1000;
+}
+.toast.show{display:flex;animation:slideIn .3s}
+@keyframes slideIn{from{transform:translateX(400px)}to{transform:translateX(0)}}
+.toast.success{border-color:var(--success)}
+.toast.error{border-color:var(--danger)}
+.toast-icon{font-size:1.5rem}
+.toast-message{flex:1;font-size:.9rem}
+
+/* Responsive */
+@media(max-width:768px){
+  h1{font-size:1.4rem}
+  .tabs{grid-template-columns:1fr 1fr}
+  .header{flex-direction:column;align-items:flex-start}
+  .btn-group{flex-direction:column}
+  .btn-group button{width:100%}
+}
+
+/* Loading */
+.loading{
+  display:none;margin-top:16px;text-align:center;
+  color:var(--muted);font-size:.9rem;
+}
+.loading.active{display:block}
+.spinner{
+  display:inline-block;width:20px;height:20px;
+  border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin 1s linear infinite;
+  margin-right:8px;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="icon-globe">🧠</div>
+    <div>
+      <h1>Research Mind-Map Tool Pro</h1>
+      <div class="subtitle">Think → Write → Structure → Visualize → Export</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="saveProgress()">💾 Save</button>
+    <button class="icon-btn" onclick="loadProgress()">📂 Load</button>
+    <div class="export-menu">
+      <button class="icon-btn" onclick="toggleExport()">📥 Export</button>
+      <div class="export-dropdown" id="exportDropdown">
+        <div class="export-option" onclick="exportJSON()">Export as JSON</div>
+        <div class="export-option" onclick="exportHTML()">Export as HTML</div>
+        <div class="export-option" onclick="exportText()">Export as Text</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" id="tab0" onclick="openTab(0)">
+    <div>🔗 Discovery</div>
+  </div>
+  <div class="tab" id="tab1" onclick="openTab(1)">
+    <div>📖 Research</div>
+  </div>
+  <div class="tab" id="tab2" onclick="openTab(2)">
+    <div>✍️ Synthesis</div>
+  </div>
+  <div class="tab" id="tab3" onclick="openTab(3)">
+    <div>🗺️ Visualize</div>
+  </div>
+</div>
+
+<!-- STEP 1: Discovery -->
+<div class="panel active">
+<h3>🔗 Discover Trusted Sources</h3>
+
+<div class="input-group">
+  <label class="input-label">Research Keyword</label>
+  <input id="keywordInput" placeholder="e.g., Cybersecurity, Quantum Computing, AI Ethics...">
+</div>
+
+<div class="btn-group">
+  <button onclick="generateLinks()">🔍 Generate URLs</button>
+  <button class="secondary" onclick="addCustomURL()">➕ Add Custom URL</button>
+</div>
+
+<div id="urlListContainer"></div>
+
+<div class="stats-grid" id="stats1" style="display:none">
+  <div class="stat-card">
+    <div class="stat-value" id="urlCount">0</div>
+    <div class="stat-label">Sources Found</div>
+  </div>
+</div>
+</div>
+
+<!-- STEP 2: Research -->
+<div class="panel">
+<h3>📖 Active Reading & Research</h3>
+
+<div class="hint-box">
+  <strong style="color:var(--accent)">Critical Reading Guide:</strong>
+  <ul>
+    <li>What is the main idea or argument?</li>
+    <li>Why does this topic matter?</li>
+    <li>What are the key risks or challenges?</li>
+    <li>What solutions or controls exist?</li>
+    <li>What evidence supports the claims?</li>
+    <li>Who are the key stakeholders?</li>
+  </ul>
+</div>
+
+<div class="input-group">
+  <label class="input-label">Research Notes</label>
+  <textarea id="researchNotes" placeholder="Take notes as you read through the sources..."></textarea>
+</div>
+
+<div class="btn-group">
+  <button onclick="saveNotes()">💾 Save Notes</button>
+  <button class="secondary" onclick="clearNotes()">🗑️ Clear</button>
+</div>
+</div>
+
+<!-- STEP 3: Synthesis -->
+<div class="panel">
+<h3>✍️ Synthesize in Your Own Words</h3>
+
+<div class="input-group">
+  <label class="input-label">Your Understanding (Plain Language)</label>
+  <textarea id="ownText" placeholder="Explain the topic in your own words. Focus on clarity and understanding..."></textarea>
+</div>
+
+<div class="btn-group">
+  <button onclick="autoGenerateJSON()">🤖 AI: Text → JSON</button>
+  <button class="secondary" onclick="jsonToText()">📄 JSON → Text</button>
+  <button class="success" onclick="validateJSON()">✓ Validate JSON</button>
+</div>
+
+<div class="loading" id="loading">
+  <span class="spinner"></span> Processing your text...
+</div>
+
+<div class="input-group">
+  <label class="input-label">Structured JSON Data</label>
+  <textarea id="jsonInput" placeholder='{"topic": "...", "definition": "..."}'></textarea>
+</div>
+
+<div class="input-group">
+  <label class="input-label">Re-generated Explanation</label>
+  <textarea id="textFromJson" placeholder="Click 'JSON → Text' to see the reconstructed explanation..."></textarea>
+</div>
+
+<div class="stats-grid" id="stats3" style="display:none">
+  <div class="stat-card">
+    <div class="stat-value" id="wordCount">0</div>
+    <div class="stat-label">Words</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="conceptCount">0</div>
+    <div class="stat-label">Concepts</div>
+  </div>
+</div>
+</div>
+
+<!-- STEP 4: Mind-Map -->
+<div class="panel">
+<h3>🗺️ Interactive Mind-Map</h3>
+
+<div class="map-controls">
+  <select id="bloomLevel">
+    <option>Remember</option>
+    <option>Understand</option>
+    <option>Apply</option>
+    <option>Analyze</option>
+    <option selected>Evaluate</option>
+    <option>Create</option>
+  </select>
+  
+  <input type="text" class="search-box" id="searchNode" placeholder="🔍 Search nodes...">
+  
+  <button onclick="renderMindMap()">🎨 Render Map</button>
+  <button class="secondary" onclick="expandAll()">📂 Expand All</button>
+  <button class="secondary" onclick="collapseAll()">📁 Collapse All</button>
+  <button class="success" onclick="exportMapImage()">📸 Screenshot</button>
+</div>
+
+<div class="map-container" id="map">
+  <div style="text-align:center;color:var(--muted);padding:40px">
+    <div style="font-size:3rem;margin-bottom:16px">🗺️</div>
+    <div>Click "Render Map" to visualize your structured data</div>
+  </div>
+</div>
+
+<div class="stats-grid" id="stats4" style="display:none">
+  <div class="stat-card">
+    <div class="stat-value" id="nodeCount">0</div>
+    <div class="stat-label">Nodes</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="depthCount">0</div>
+    <div class="stat-label">Max Depth</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="branchCount">0</div>
+    <div class="stat-label">Branches</div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon"></div>
+  <div class="toast-message" id="toastMessage"></div>
+</div>
+
+<script>
+// State
+let currentTab=0;
+let urlList=[];
+let mapData=null;
+let completedTabs=new Set();
+
+// Initialize
+document.addEventListener('DOMContentLoaded',()=>{
+  loadFromStorage();
+  updateProgress();
+  setupSearch();
+});
+
+/* === TAB MANAGEMENT === */
+function openTab(i){
+  currentTab=i;
+  document.querySelectorAll(".tab").forEach((t,x)=>{
+    t.classList.toggle("active",x===i);
+  });
+  document.querySelectorAll(".panel").forEach((p,x)=>{
+    p.classList.toggle("active",x===i);
+  });
+  updateProgress();
+}
+
+function markTabComplete(tabIndex){
+  completedTabs.add(tabIndex);
+  document.getElementById(`tab${tabIndex}`).classList.add('completed');
+  updateProgress();
+}
+
+function updateProgress(){
+  const percent=(completedTabs.size/4)*100;
+  document.getElementById('progressFill').style.width=percent+'%';
+}
+
+/* === STEP 1: URL GENERATION === */
+const sources=[
+  {name:'Wikipedia',icon:'📚',url:q=>`https://en.wikipedia.org/wiki/${q}`},
+  {name:'Cloudflare Learning',icon:'☁️',url:q=>`https://www.cloudflare.com/learning/${q.toLowerCase()}/`},
+  {name:'IBM Topics',icon:'💼',url:q=>`https://www.ibm.com/topics/${q.toLowerCase()}`},
+  {name:'YouTube',icon:'🎥',url:q=>`https://www.youtube.com/results?search_query=${q}+explained`},
+  {name:'MIT OpenCourseWare',icon:'🎓',url:q=>`https://ocw.mit.edu/search/?q=${q}`},
+  {name:'Stack Overflow',icon:'💻',url:q=>`https://stackoverflow.com/search?q=${q}`},
+  {name:'Medium',icon:'✍️',url:q=>`https://medium.com/search?q=${q}`},
+  {name:'ArXiv (Research)',icon:'🔬',url:q=>`https://arxiv.org/search/?query=${q}`},
+];
+
+function generateLinks(){
+  const k=document.getElementById("keywordInput").value.trim();
+  if(!k)return showToast('Enter a keyword first!','error');
+  
+  const query=k.replace(/\s+/g,"_");
+  urlList=sources.map(s=>({
+    name:s.name,
+    icon:s.icon,
+    url:s.url(query)
+  }));
+  
+  renderURLList();
+  markTabComplete(0);
+  showToast(`Generated ${urlList.length} trusted sources!`,'success');
+}
+
+function addCustomURL(){
+  const url=prompt('Enter custom URL:');
+  if(url){
+    urlList.push({name:'Custom',icon:'🔗',url});
+    renderURLList();
+  }
+}
+
+function renderURLList(){
+  const container=document.getElementById('urlListContainer');
+  if(urlList.length===0){
+    container.innerHTML='';
+    document.getElementById('stats1').style.display='none';
+    return;
+  }
+  
+  container.innerHTML=`
+    <div class="url-list">
+      ${urlList.map((item,i)=>`
+        <div class="url-item">
+          <div class="url-icon">${item.icon}</div>
+          <a href="${item.url}" target="_blank" class="url-link">${item.name}</a>
+          <button class="icon-btn" onclick="copyURL(${i})" style="margin:0">📋</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  document.getElementById('stats1').style.display='grid';
+  document.getElementById('urlCount').textContent=urlList.length;
+}
+
+function copyURL(i){
+  navigator.clipboard.writeText(urlList[i].url);
+  showToast('URL copied!','success');
+}
+
+/* === STEP 2: NOTES === */
+function saveNotes(){
+  const notes=document.getElementById('researchNotes').value;
+  if(!notes)return showToast('No notes to save!','error');
+  localStorage.setItem('researchNotes',notes);
+  markTabComplete(1);
+  showToast('Notes saved!','success');
+}
+
+function clearNotes(){
+  if(confirm('Clear all notes?')){
+    document.getElementById('researchNotes').value='';
+    showToast('Notes cleared','success');
+  }
+}
+
+/* === STEP 3: TEXT → JSON === */
+function autoGenerateJSON(){
+  const t=document.getElementById("ownText").value.trim();
+  if(!t)return showToast('Write something first!','error');
+  
+  // Show loading
+  document.getElementById('loading').classList.add('active');
+  
+  setTimeout(()=>{
+    const sentences=t.split(/[.!?]+/).map(x=>x.trim()).filter(Boolean);
+    const words=t.toLowerCase().match(/\b[a-z]{4,}\b/gi)||[];
+    const keyTerms=[...new Set(words)].slice(0,10);
+    
+    // Enhanced extraction
+    const risks=extractByKeywords(sentences,['risk','threat','danger','challenge','problem']);
+    const controls=extractByKeywords(sentences,['control','solution','prevent','protect','mitigate']);
+    const benefits=extractByKeywords(sentences,['benefit','advantage','improve','ensure','enable']);
+    
+    const json={
+      topic:sentences[0]?.split(' ').slice(0,4).join(' ')||'Research Topic',
+      definition:sentences[0]||'',
+      core_concepts:{
+        overview:keyTerms.slice(0,5),
+        risks:risks.slice(0,3),
+        controls:controls.slice(0,3),
+        benefits:benefits.slice(0,3)
+      },
+      key_points:sentences.slice(1,4),
+      why_it_matters:sentences.slice(4,7),
+      stakeholders:extractByKeywords(sentences,['people','user','organization','company','team']),
+      bloom_level:document.getElementById('bloomLevel').value
+    };
+    
+    document.getElementById("jsonInput").value=JSON.stringify(json,null,2);
+    document.getElementById('loading').classList.remove('active');
+    
+    // Update stats
+    document.getElementById('stats3').style.display='grid';
+    document.getElementById('wordCount').textContent=words.length;
+    document.getElementById('conceptCount').textContent=keyTerms.length;
+    
+    markTabComplete(2);
+    showToast('JSON generated successfully!','success');
+  },1000);
+}
+
+function extractByKeywords(sentences,keywords){
+  return sentences.filter(s=>
+    keywords.some(k=>s.toLowerCase().includes(k))
+  ).slice(0,3);
+}
+
+function jsonToText(){
+  let d;
+  try{
+    d=JSON.parse(document.getElementById('jsonInput').value);
+  }catch{
+    return showToast('Invalid JSON!','error');
+  }
+  
+  let text=`${d.topic} is defined as ${d.definition}.\n\n`;
+  
+  if(d.core_concepts?.overview?.length){
+    text+=`Core Concepts: ${d.core_concepts.overview.join(", ")}.\n\n`;
+  }
+  
+  if(d.core_concepts?.risks?.length){
+    text+=`Key Risks: ${d.core_concepts.risks.join("; ")}.\n\n`;
+  }
+  
+  if(d.core_concepts?.controls?.length){
+    text+=`Controls: ${d.core_concepts.controls.join("; ")}.\n\n`;
+  }
+  
+  if(d.key_points?.length){
+    text+=`Important Points:\n${d.key_points.map((p,i)=>`${i+1}. ${p}`).join('\n')}\n\n`;
+  }
+  
+  if(d.why_it_matters?.length){
+    text+=`Why It Matters:\n${d.why_it_matters.join(' ')}`;
+  }
+  
+  document.getElementById('textFromJson').value=text;
+  showToast('Text generated from JSON!','success');
+}
+
+function validateJSON(){
+  try{
+    const d=JSON.parse(document.getElementById('jsonInput').value);
+    showToast('✓ Valid JSON structure!','success');
+    return true;
+  }catch(e){
+    showToast('✗ Invalid JSON: '+e.message,'error');
+    return false;
+  }
+}
+
+/* === STEP 4: MIND-MAP === */
+let allNodes=[];
+let maxDepth=0;
+
+function renderMindMap(){
+  if(!validateJSON())return;
+  
+  const map=document.getElementById("map");
+  map.innerHTML="";
+  allNodes=[];
+  maxDepth=0;
+  
+  let d;
+  try{
+    d=JSON.parse(document.getElementById('jsonInput').value);
+  }catch{
+    return;
+  }
+  
+  d.bloom=document.getElementById('bloomLevel').value;
+  mapData=d;
+  
+  const canvas=document.createElement('div');
+  canvas.className='map-canvas';
+  map.appendChild(canvas);
+  
+  const root=createNode(d.topic,true,0);
+  canvas.appendChild(root.element);
+  root.children.classList.add("visible");
+  
+  addItem(root.children,"📝 Definition",d.definition,1);
+  addObject(root.children,"🧩 Core Concepts",d.core_concepts,1);
+  addArray(root.children,"💡 Key Points",d.key_points,1);
+  addArray(root.children,"🎯 Why It Matters",d.why_it_matters,1);
+  
+  if(d.stakeholders?.length){
+    addArray(root.children,"👥 Stakeholders",d.stakeholders,1);
+  }
+  
+  const tag=document.createElement("div");
+  tag.className="bloom-tag";
+  tag.textContent="Bloom: "+d.bloom;
+  root.element.appendChild(tag);
+  
+  // Update stats
+  document.getElementById('stats4').style.display='grid';
+  document.getElementById('nodeCount').textContent=allNodes.length;
+  document.getElementById('depthCount').textContent=maxDepth;
+  document.getElementById('branchCount').textContent=
+    root.element.querySelectorAll('.children>div').length;
+  
+  markTabComplete(3);
+  showToast('Mind-map rendered!','success');
+}
+
+function createNode(text,root=false,depth=0){
+  const el=document.createElement("div");
+  el.className="node"+(root?" root":` level-${Math.min(depth,2)}`);
+  el.textContent=text;
+  el.draggable=true;
+  el.dataset.text=text.toLowerCase();
+  
+  maxDepth=Math.max(maxDepth,depth);
+  allNodes.push(el);
+  
+  const children=document.createElement("div");
+  children.className="children";
+  
+  // Count badge
+  const updateBadge=()=>{
+    const count=children.querySelectorAll(':scope > div').length;
+    let badge=el.querySelector('.node-badge');
+    if(count>0){
+      if(!badge){
+        badge=document.createElement('div');
+        badge.className='node-badge';
+        el.appendChild(badge);
+      }
+      badge.textContent=count;
+    }else if(badge){
+      badge.remove();
+    }
+  };
+  
+  el.onclick=e=>{
+    e.stopPropagation();
+    children.classList.toggle("visible");
+  };
+  
+  // Drag & Drop
+  el.addEventListener("dragstart",()=>el.classList.add("dragging"));
+  el.addEventListener("dragend",()=>el.classList.remove("dragging"));
+  
+  children.addEventListener("dragover",e=>e.preventDefault());
+  children.addEventListener("drop",()=>{
+    const dragged=document.querySelector(".dragging");
+    if(dragged&&dragged!==el){
+      children.appendChild(dragged);
+      updateBadge();
+    }
+  });
+  
+  el.appendChild(children);
+  updateBadge();
+  
+  return{element:el,children};
+}
+
+function addItem(parent,title,value,depth=0){
+  if(!value)return;
+  const n=createNode(title,false,depth);
+  parent.appendChild(n.element);
+  n.children.classList.add("visible");
+  const child=createNode(value,false,depth+1);
+  n.children.appendChild(child.element);
+}
+
+function addArray(parent,title,arr,depth=0){
+  if(!Array.isArray(arr)||arr.length===0)return;
+  const n=createNode(title,false,depth);
+  parent.appendChild(n.element);
+  arr.forEach(v=>{
+    const child=createNode(v,false,depth+1);
+    n.children.appendChild(child.element);
+  });
+}
+
+function addObject(parent,title,obj,depth=0){
+  if(!obj)return;
+  const n=createNode(title,false,depth);
+  parent.appendChild(n.element);
+  Object.entries(obj).forEach(([k,v])=>{
+    const s=createNode(k,false,depth+1);
+    n.children.appendChild(s.element);
+    if(Array.isArray(v)){
+      v.forEach(i=>{
+        const child=createNode(i,false,depth+2);
+        s.children.appendChild(child.element);
+      });
+    }
+  });
+}
+
+function expandAll(){
+  document.querySelectorAll('.children').forEach(c=>c.classList.add('visible'));
+  showToast('All nodes expanded','success');
+}
+
+function collapseAll(){
+  document.querySelectorAll('.children').forEach(c=>c.classList.remove('visible'));
+  showToast('All nodes collapsed','success');
+}
+
+/* === SEARCH === */
+function setupSearch(){
+  const search=document.getElementById('searchNode');
+  search.addEventListener('input',e=>{
+    const query=e.target.value.toLowerCase();
+    allNodes.forEach(node=>{
+      node.classList.remove('highlight');
+      if(query&&node.dataset.text.includes(query)){
+        node.classList.add('highlight');
+      }
+    });
+  });
+}
+
+/* === EXPORT === */
+function toggleExport(){
+  document.getElementById('exportDropdown').classList.toggle('active');
+}
+
+function exportJSON(){
+  const data=mapData||{};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  downloadBlob(blob,'research-mindmap.json');
+  toggleExport();
+}
+
+function exportHTML(){
+  const html=document.getElementById('map').innerHTML;
+  const full=`<!DOCTYPE html><html><head><title>Mind-Map</title></head>
+    <body style="font-family:system-ui;padding:20px;background:#020617;color:#e5e7eb">
+    ${html}</body></html>`;
+  const blob=new Blob([full],{type:'text/html'});
+  downloadBlob(blob,'mindmap.html');
+  toggleExport();
+}
+
+function exportText(){
+  const text=document.getElementById('textFromJson').value||
+    document.getElementById('ownText').value;
+  const blob=new Blob([text],{type:'text/plain'});
+  downloadBlob(blob,'research-notes.txt');
+  toggleExport();
+}
+
+function exportMapImage(){
+  showToast('Screenshot: Use browser Print to PDF or screenshot tool','success');
+}
+
+function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Exported: ${filename}`,'success');
+}
+
+/* === STORAGE === */
+function saveProgress(){
+  const data={
+    keyword:document.getElementById('keywordInput').value,
+    urls:urlList,
+    notes:document.getElementById('researchNotes').value,
+    ownText:document.getElementById('ownText').value,
+    json:document.getElementById('jsonInput').value,
+    bloom:document.getElementById('bloomLevel').value,
+    completed:Array.from(completedTabs)
+  };
+  localStorage.setItem('mindMapProgress',JSON.stringify(data));
+  showToast('Progress saved!','success');
+}
+
+function loadProgress(){
+  const saved=localStorage.getItem('mindMapProgress');
+  if(!saved)return showToast('No saved progress found','error');
+  
+  try{
+    const data=JSON.parse(saved);
+    document.getElementById('keywordInput').value=data.keyword||'';
+    urlList=data.urls||[];
+    renderURLList();
+    document.getElementById('researchNotes').value=data.notes||'';
+    document.getElementById('ownText').value=data.ownText||'';
+    document.getElementById('jsonInput').value=data.json||'';
+    document.getElementById('bloomLevel').value=data.bloom||'Evaluate';
+    completedTabs=new Set(data.completed||[]);
+    completedTabs.forEach(i=>document.getElementById(`tab${i}`).classList.add('completed'));
+    updateProgress();
+    showToast('Progress loaded!','success');
+  }catch{
+    showToast('Failed to load progress','error');
+  }
+}
+
+function loadFromStorage(){
+  const notes=localStorage.getItem('researchNotes');
+  if(notes)document.getElementById('researchNotes').value=notes;
+}
+
+/* === TOAST === */
+function showToast(message,type='success'){
+  const toast=document.getElementById('toast');
+  const icon=document.getElementById('toastIcon');
+  const msg=document.getElementById('toastMessage');
+  
+  toast.className='toast '+type;
+  icon.textContent=type==='success'?'✓':'✗';
+  msg.textContent=message;
+  
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),3000);
+}
+
+// Close export menu when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.export-menu')){
+    document.getElementById('exportDropdown').classList.remove('active');
+  }
+});
+</script>
+
+</body>
+</html>
