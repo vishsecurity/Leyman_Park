@@ -47,7 +47,7 @@ This tool:
 
 ---
 
-### 📖 2. Research (Active Reading)
+### 2. Research (Active Reading)
 
 * Dedicated space for **manual reading notes**
 * Guided critical-reading checklist
