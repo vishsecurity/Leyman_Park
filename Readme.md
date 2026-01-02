@@ -96,7 +96,7 @@ This tool:
 
 ---
 
-### 📊 Learning Analytics
+### Learning Analytics
 
 * Progress bar across stages
 * Node count
